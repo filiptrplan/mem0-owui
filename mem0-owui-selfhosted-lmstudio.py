@@ -105,6 +105,9 @@ class Pipeline:
         if self.m is None:
             print("Initializing mem0 client")
             self.m = await self.init_mem_zero()
+            if self.m is None:
+                print("Mem0 client initialization failed")
+                return body
 
         print(f"Current module: {__name__}")
         print(f"Request body: {body.keys()}")

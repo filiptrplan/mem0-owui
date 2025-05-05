@@ -76,7 +76,6 @@ class Pipeline:
         self.valves = self.Valves(
             **{k: os.getenv(k, v.default) for k, v in self.Valves.model_fields.items()}
         )
-        asyncio.create_task(self.set_mem0_client())
         pass
 
     async def set_mem0_client(self):
@@ -211,6 +210,11 @@ class Pipeline:
         return body
 
     async def init_mem_zero(self):
+        if (
+            self.valves.llm_api_key == "placeholder"
+            or self.valves.embedder_api_key == "placeholder"
+        ):
+            return None
         config = {
             "vector_store": {
                 "provider": "qdrant",

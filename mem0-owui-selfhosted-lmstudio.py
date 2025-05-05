@@ -65,6 +65,10 @@ class Pipeline:
             default="BAAI/bge-m3", description="Embedding model name"
         )
 
+        limit_search_results: int = Field(
+            default=10, description="Maximum number of search results to return"
+        )
+
     def __init__(self):
         self.type = "filter"
         self.valves = self.Valves(
@@ -141,7 +145,11 @@ class Pipeline:
             # Retrieve relevant memories and update memory with current message
             print("DEBUG: MemoryClient initialized:", self.m)
             print("DEBUG: Getting memories...")
-            memories = await self.m.search(user_id=current_user_id, query=user_message)
+            memories = await self.m.search(
+                user_id=current_user_id,
+                query=user_message,
+                limit=self.valves.limit_search_results,
+            )
 
             if assistant_message:
                 asyncio.create_task(

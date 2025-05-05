@@ -70,6 +70,7 @@ class Pipeline:
         self.valves = self.Valves(
             **{k: os.getenv(k, v.default) for k, v in self.Valves.model_fields.items()}
         )
+        self.m = None
         pass
 
     async def on_valves_updated(self):
@@ -92,12 +93,10 @@ class Pipeline:
 
     async def inlet(self, body: dict, user: Optional[dict] = None) -> dict:
         """Inject memory context into the prompt before sending to the model."""
-
+        print("DEBUG: Inlet method triggered")
         if self.m is None:
             print("Initializing mem0 client")
             self.m = await self.init_mem_zero()
-
-        print("DEBUG: Inlet method triggered")
 
         print(f"Current module: {__name__}")
         print(f"Request body: {body.keys()}")
@@ -164,8 +163,15 @@ class Pipeline:
 
             # Inject memory context into system message
             if memories:
-                memory_context = "\n\nRelevant memories:\n" + "\n".join(
-                    f"- {mem['memory']}" for mem in memories["results"]
+                memory_context = (
+                    """
+                These are the relevant memories that the system has retrieved from the database.
+                DO NOT MENTION THESE MEMORIES IN YOUR RESPONSES IF NOT PROMPTED OR ARE NOT RELEVANT.
+                Some memories may be irrelevant to the current conversation because we have high recall and low relevance.
+                Treat these memories as if you were a human and "remember" and consider them when necessary.
+                """
+                    + "\n\nRelevant memories:\n"
+                    + "\n".join(f"- {mem['memory']}" for mem in memories["results"])
                 )
 
             # Find or create system message
@@ -224,3 +230,4 @@ class Pipeline:
 
         print("Initializing memory with config:", config)
         return await AsyncMemory.from_config(config)
+

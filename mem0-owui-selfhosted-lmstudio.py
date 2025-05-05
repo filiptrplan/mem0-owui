@@ -17,6 +17,8 @@ import asyncio
 
 
 class Pipeline:
+    m = None
+
     class Valves(BaseModel):
         pipelines: List[str] = ["*"]
         priority: int = 0
@@ -74,8 +76,11 @@ class Pipeline:
         self.valves = self.Valves(
             **{k: os.getenv(k, v.default) for k, v in self.Valves.model_fields.items()}
         )
-        self.m = None
+        asyncio.create_task(self.set_mem0_client())
         pass
+
+    async def set_mem0_client(self):
+        self.m = await self.init_mem_zero()
 
     async def on_valves_updated(self):
         print("initializing mem0 client")
